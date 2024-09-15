@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{title}-{message_type_code}-{###}",
+ "creation": "2024-09-09 14:27:40.782944",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "event_section",
+  "title",
+  "message_type",
+  "hospital_id",
+  "hospital_oid",
+  "message_type_code",
+  "column_break_4",
+  "ip_address",
+  "port_number",
+  "doctype_event",
+  "action",
+  "record",
+  "mapping_section_section",
+  "hl7_template",
+  "mapping_table",
+  "pid_listener"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_section",
+   "fieldtype": "Section Break",
+   "label": "Event Configuration"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "message_type",
+   "fieldtype": "Select",
+   "label": "Message Type",
+   "options": "Sender\nReceiver"
+  },
+  {
+   "fieldname": "hospital_id",
+   "fieldtype": "Link",
+   "label": "Hospital ID",
+   "options": "Hospitals"
+  },
+  {
+   "fieldname": "hospital_oid",
+   "fieldtype": "Data",
+   "label": "Hospital OID"
+  },
+  {
+   "fieldname": "message_type_code",
+   "fieldtype": "Data",
+   "label": "Message Type Code"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ip_address",
+   "fieldtype": "Data",
+   "label": "IP Address"
+  },
+  {
+   "fieldname": "port_number",
+   "fieldtype": "Int",
+   "label": "Port Number"
+  },
+  {
+   "fieldname": "doctype_event",
+   "fieldtype": "Link",
+   "label": "Doctype Event",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "label": "Action",
+   "options": "\nCreate\nUpdate\nSubmit\nDelete"
+  },
+  {
+   "fieldname": "record",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Record"
+  },
+  {
+   "fieldname": "mapping_section_section",
+   "fieldtype": "Section Break",
+   "label": "Mapping Section"
+  },
+  {
+   "fieldname": "hl7_template",
+   "fieldtype": "Long Text",
+   "label": "HL7 Template"
+  },
+  {
+   "fieldname": "mapping_table",
+   "fieldtype": "Table",
+   "label": "Mapping Table",
+   "options": "HL7 Mapping Table"
+  },
+  {
+   "fieldname": "pid_listener",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "pid_listener"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-09-15 12:06:56.649369",
+ "modified_by": "Administrator",
+ "module": "Hl7",
+ "name": "HL7 Settings",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}
