@@ -1,0 +1,20 @@
+[project]
+name = "hl7"
+authors = [
+    { name = "yazan", email = "yazan@wowit.sa"}
+]
+description = "The HL7 Integration App for Frappe is a powerful solution designed to facilitate seamless communication between healthcare systems. Built on the robust Frappe framework, this app enables healthcare providers to exchange critical patient information and clinical data efficiently, ensuring interoperability across various healthcare platforms."
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # "frappe~=15.0.0" # Installed and managed by bench.
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+# These dependencies are only installed when developer mode is enabled
+[tool.bench.dev-dependencies]
+# package_name = "~=1.1.0"
