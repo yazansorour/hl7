@@ -29,38 +29,17 @@ def parseHL7Message(msgName):
 
 @frappe.whitelist()
 def hl7Response(msg, port):
-    m = ''
-    for i in msg.splitlines():
-        m += i + '\r'
-    message = parse_message(m)
-    # Splitting segments from HL7 message
-    segments = message.children
-    # msg_type = segments[0].children[7].children[1].value
-    # frappe.throw(str(msg_type))
-    #hos_oid = segments[0].children[3].children[1].children[1].value.value
-    hos_oid = segments[0].children[5].children[0].children[1].value.value
+   
+    msgSeg =  HL7Utill.getDictSegments(msg)
+    mshSeg = parse_segment(msgSeg['MSH'])
+    pidSeg = parse_segment(msgSeg['PID-1'])
+    
+    hos_oid = mshSeg.children[5].children[0].children[1].value.value
     hl7_settings_list = frappe.db.get_list("HL7 Settings", filters={"hospital_oid" : str(hos_oid), "port_number": port}, fields=["name"])
     hl7_settings = frappe.get_doc('HL7 Settings',hl7_settings_list[0].name)
-    p_mrn = segments[2].children[1].children[0].children[0].value.value
-    p_gender = 'Female' if segments[2].children[7].children[0].children[0].value.value == 'F' else 'Male'
-    p_dob = segments[2].children[6].children[0].children[0].value.value[0:4] + '-' + segments[2].children[6].children[0].children[0].value.value[4:6] + '-' + segments[2].children[6].children[0].children[0].value.value[6:8]
-
-    # conditions = hl7_settings.hl7_settings_condition_table
-    """
-    filters = {}
-
-    for row in conditions:
-        if len(row.field.split("~")) > 1:
-            seg = getattr(message , row.segement)
-            field = getattr(seg, row.field.lower().split("~")[0]) # field
-            result = field[int(row.field.split("~")[1]) - 1].children[int(row.component)-1].children[int(row.sub_component)-1].value.value
-            filters[row.field_name] = result
-        else:
-            seg = getattr(message , row.segement)
-            field = getattr(seg, row.field.lower()) # field
-            result = field[0].children[int(row.component)-1].children[int(row.sub_component)-1].value.value
-            filters[row.field_name] = result
-    """
+    p_mrn = pidSeg.children[1].children[0].children[0].value.value
+    p_gender = 'Female' if pidSeg.children[7].children[0].children[0].value.value == 'F' else 'Male'
+    p_dob = pidSeg.children[6].children[0].children[0].value.value[0:4] + '-' + pidSeg.children[6].children[0].children[0].value.value[4:6] + '-' + pidSeg.children[6].children[0].children[0].value.value[6:8]
 
     # Create Patient
     if hl7_settings.action == "Create":
@@ -72,22 +51,25 @@ def hl7Response(msg, port):
         if len(doc_list) > 0:
             doc_event = frappe.get_doc("Patients", doc_list[0].name)
 
-
     if len(hl7_settings.mapping_table) > 0:
         for row in hl7_settings.mapping_table:
                         if len(row.field.split("~")) > 1:
-                            seg = getattr(message , row.segement)
-                            field = getattr(seg, row.field.lower().split("~")[0]) # field
-                            result = field[int(row.field.split("~")[1]) - 1].children[int(row.component)-1].children[int(row.sub_component)-1].value.value
-
-                            result = relative_result(result)
+                            seg = parse_segment(msgSeg[row.segement])
+                            field = getattr(seg , row.field.split("~")[0])
+                            fieldar = field[int(row.field.split("~")[1]) - 1]
+                            component = fieldar.children[int(row.component)-1]
+                            subComp = component.children[int(row.sub_component)-1]
+                            result = subComp
+                            result = relative_result(result.value.value)
                             setattr(doc_event, row.value, result)
                         else:
-                            seg = getattr(message , row.segement)
-                            field = getattr(seg, row.field.lower()) # field
-                            result = field[0].children[int(row.component)-1].children[int(row.sub_component)-1].value.value
-
-                            result = relative_result(result)
+                            seg = parse_segment(msgSeg[row.segement])
+                            field = getattr(seg , row.field.split("~")[0])
+                            fieldar = field[0]
+                            component = fieldar.children[int(row.component)-1]
+                            subComp = component.children[int(row.sub_component)-1]
+                            result = subComp
+                            result = relative_result(result.value.value)
                             setattr(doc_event, row.value, result)
     # Create a new DocType
     if hl7_settings.action == "Create":
@@ -112,7 +94,6 @@ def sendHL7Message(docType, docName, action):
     data = json.loads(docName)
     #record = DotMap(data)
     record = JsonObject(data)
-    #record = frappe.get_doc(docType,'EJH-1234566531003600')
     # Check HL7 Settings
     # Get `Enabled` Settings with `THIS DOCTYPE` doctype event
     settings_list = frappe.db.get_list(
@@ -125,18 +106,14 @@ def sendHL7Message(docType, docName, action):
     if len(settings_list) > 0:
         # Send patient's data
         hl7_settings = frappe.get_doc("HL7 Settings", settings_list[0].name)
-
         connection_failed = False
-
         # Creation date
         date_now = datetime.now()
-
         # HL7 Message Sequence
         hl7_seq = frappe.new_doc("Message Sequence")
         hl7_seq.doc_id = hl7_settings.doctype_event
         hl7_seq.insert(ignore_permissions = True)
         last_seq = hl7_seq.name
-
         # HL7 Logs object
         hl7_logs = frappe.new_doc("HL7 Logs")
         hl7_logs.hl7_settings = hl7_settings.name
@@ -144,7 +121,6 @@ def sendHL7Message(docType, docName, action):
             clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             clientSocket.connect((hl7_settings.ip_address,hl7_settings.port_number))
             hl7_logs.status = "Succedded"
-
         except:
             connection_failed = True
             hl7_logs.status = "Failed"
@@ -152,14 +128,7 @@ def sendHL7Message(docType, docName, action):
             hl7_logs.creation_date = date_now
             hl7_logs.insert(ignore_permissions = True)
 
-        msg = hl7_settings.hl7_template
-        m = ''
-        for i in msg.splitlines():
-            m += i + '\r'
-        message = parse_message(m)
-        # Splitting segments from HL7 message
-        segments = message.children
-        #record = frappe.get_doc(hl7_settings.doctype_event, docName)
+        msgSeg =  HL7Utill.getDictSegments(hl7_settings.hl7_template)
         # prepare data for hl7
         if record.dob != None:
             record.dob = str(record.dob)
@@ -173,17 +142,16 @@ def sendHL7Message(docType, docName, action):
         if len(hl7_settings.mapping_table) > 0:
             for row in hl7_settings.mapping_table:
                             if len(row.field.split("~")) > 1:
-                                seg = getattr(message , row.segement)
+                                seg = parse_segment(msgSeg[row.segement])
                                 field = getattr(seg, row.field.lower().split("~")[0])
                                 fieldar = field[int(row.field.split("~")[1]) - 1]
                                 component = fieldar.children[int(row.component)-1]
                                 subComp = component.children[int(row.sub_component)-1]
                                 result = subComp
                                 result.value = getattr(record,row.value)
-                                #frappe.throw(str(result))
-                                #setattr(doc_event, row.value, result)
+                                msgSeg[row.segement] = seg.value
                             else:
-                                seg = getattr(message , row.segement)
+                                seg = parse_segment(msgSeg[row.segement])
                                 field = getattr(seg, row.field.lower()) # field
                                 fieldar = field[0]
                                 component = fieldar.children[int(row.component)-1]
@@ -202,8 +170,13 @@ def sendHL7Message(docType, docName, action):
                                     result.value = last_seq
                                 else:
                                     result.value = getattr(record,row.value)
-                                #setattr(doc_event, row.value, result)
+                                msgSeg[row.segement] = seg.value
 
+        m = ''
+        for index , (key , value) enumerate(msgSeg.items()):
+            m += value + '\r'
+        
+        message = parse_message(m)
         payload = b"\x0b" + message.value.encode() + b"\x1c\x0d"
 
         if connection_failed == False:
@@ -220,8 +193,6 @@ def sendHL7Message(docType, docName, action):
                 hl7_logs.message = payload
                 hl7_logs.creation_date = date_now
                 hl7_logs.insert(ignore_permissions = True)
-
-
             except:
                 hl7_logs.status = "Failed"
                 hl7_logs.message = data
