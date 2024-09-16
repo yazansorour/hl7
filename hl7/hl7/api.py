@@ -173,7 +173,7 @@ def sendHL7Message(docType, docName, action):
                                 msgSeg[row.segement] = seg.value
 
         m = ''
-        for index , (key , value) enumerate(msgSeg.items()):
+        for index,(key , value) in enumerate(msgSeg.items()):
             m += value + '\r'
         
         message = parse_message(m)
