@@ -5,7 +5,7 @@ from hl7apy.v2_4 import ST
 from dotmap import DotMap
 import pydicom
 from hl7.hl7.utils.hl7_utill import HL7Utill
-
+import json
 class JsonObject:
     def __init__(self, data):
         self.__dict__ = data
@@ -101,15 +101,17 @@ def sendHL7Message(docType, docName, action):
         filters={'doctype_event': docType, 'workflow_state': 'Enabled', 'message_type': 'Sender', 'action': action ,'hospital_id':record.hospital_id},
         fields=['name', 'workflow_state', 'doctype_event'],
     )
-
+    print("Getting Hl7 Settings .....")
     # Check if `this doctype` has hl7 settings
     if len(settings_list) > 0:
+        print("Found Hl7 Settings ...")
         # Send patient's data
         hl7_settings = frappe.get_doc("HL7 Settings", settings_list[0].name)
         connection_failed = False
         # Creation date
         date_now = datetime.now()
         # HL7 Message Sequence
+        
         hl7_seq = frappe.new_doc("Message Sequence")
         hl7_seq.doc_id = hl7_settings.doctype_event
         hl7_seq.insert(ignore_permissions = True)
@@ -117,6 +119,7 @@ def sendHL7Message(docType, docName, action):
         # HL7 Logs object
         hl7_logs = frappe.new_doc("HL7 Logs")
         hl7_logs.hl7_settings = hl7_settings.name
+    
         try:
             clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             clientSocket.connect((hl7_settings.ip_address,hl7_settings.port_number))
@@ -127,9 +130,12 @@ def sendHL7Message(docType, docName, action):
             hl7_logs.error_message = 'Server connection failed!\nTry changing IP Address or Port Number.'
             hl7_logs.creation_date = date_now
             hl7_logs.insert(ignore_permissions = True)
-
+        
         msgSeg =  HL7Utill.getDictSegments(hl7_settings.hl7_template)
-        # prepare data for hl7
+
+        # Todo : Case If data is date or gender or country should change the format with hl7 format
+        
+        """
         if record.dob != None:
             record.dob = str(record.dob)
             record.dob = record.dob.split('-')[0] + record.dob.split('-')[1] + record.dob.split('-')[2]
@@ -139,6 +145,7 @@ def sendHL7Message(docType, docName, action):
             countryCode = frappe.db.get_list("HL7 Relative Data" , filters={'Key':record.nationality} , fields=['name','value'])
             if len(countryCode) > 0:
                 record.nationality = countryCode[0].value
+        """
         if len(hl7_settings.mapping_table) > 0:
             for row in hl7_settings.mapping_table:
                             if len(row.field.split("~")) > 1:
@@ -166,7 +173,7 @@ def sendHL7Message(docType, docName, action):
                                 elif row.field.lower() == "msh_10":
                                     # Message series
                                     #message_code = self.name
-                                    frappe.msgprint(hl7_logs.name)
+                                    #frappe.msgprint(hl7_logs.name)
                                     result.value = last_seq
                                 else:
                                     result.value = getattr(record,row.value)
@@ -178,7 +185,7 @@ def sendHL7Message(docType, docName, action):
         
         message = parse_message(m)
         payload = b"\x0b" + message.value.encode() + b"\x1c\x0d"
-
+        
         if connection_failed == False:
             try:
                 clientSocket.send(payload)
@@ -199,4 +206,4 @@ def sendHL7Message(docType, docName, action):
                 hl7_logs.error_message = "Unexpected error has occured!\nA required field could be missing."
                 hl7_logs.creation_date = date_now
                 hl7_logs.insert(ignore_permissions = True)
-
+    

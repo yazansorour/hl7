@@ -119,6 +119,44 @@ OBX|28|ED|S90_S90DDIFFScattergram||Mythic 5Vet PRO^Image^BMP^Base64^Qk32lgMAAAâ€
             segments[seg.name + '-' + str(seg.children[0].children[0].children[0].value.value)] = s
         return segments
 
+    @classmethod
+    def extractMetadata(cls , msh):
+        """
+        Extracts meta data from msh segment
+
+        This method will return sender info , reciver info , message type
+
+        Args: 
+            msh : string
+
+        Returns:
+            dict : A dictionary mapping for sender and reciver and message type
+
+        Exmaple:
+            returning example : {"application_sender":{"name":"HIS" ,"oid":"2.16.840.1.113883.3.3731.1.2.2.123456789"}}
+        """
+
+        mshSeg = parse_segment(msh)
+        
+        """ ---------------------- Meta Data ---------------------- """
+        sendingApplication = mshSeg.sending_application[0].children[1].value.split("&")
+        sendingFacility = mshSeg.sending_facility[0].children[1].value.split("&")
+        receivingApplication = mshSeg.receiving_application[0].children[1].value.split("&")
+        receivingFacility = mshSeg.receiving_facility[0].children[0].value.split("&")
+        
+        """ ---------------------- Message Type  ---------------------- """
+        messageType = mshSeg.message_type.value.split("^")
+
+        return {
+            "application_sender":{"name":sendingApplication[0] , "oid":sendingApplication[1]},
+            "facility_sender":{"name":sendingFacility[0] , "oid":sendingFacility[1]},
+            "application_receiver":{"name":receivingApplication[0] , "oid":receivingApplication[1]},
+            "facility_receiver":{"name":receivingFacility[0] , "oid":receivingFacility[1]},
+            "message_type":{"type":messageType[0] , "code":messageType[1]}
+        }
+
+
+
     
 
 # To run the utility
