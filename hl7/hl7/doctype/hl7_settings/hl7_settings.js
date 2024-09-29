@@ -16,6 +16,11 @@ frappe.ui.form.on('HL7 Settings', {
 				'options',
 				[""].concat(segments)
 				);
+				frm.fields_dict.filter_table.grid.update_docfield_property(
+					'segement',
+					'options',
+					[""].concat(segments)
+				);
 			})
 			.catch(err => {
 				console.error("Error occurred while parsing HL7 message:", err);
@@ -66,8 +71,14 @@ frappe.ui.form.on('HL7 Mapping Table','segement',function(frm,cdt,cdn){
 		'options',
 		[""].concat(fields)
 		);
+		frm.fields_dict.filter_table.grid.update_docfield_property(
+			'field',
+			'options',
+			[""].concat(fields)
+		);
 	}
     frm.refresh_field("mapping_table");
+	frm.refresh_field("filter_table");
 })
 
 frappe.ui.form.on('HL7 Mapping Table','field',function(frm,cdt,cdn){
@@ -84,8 +95,14 @@ frappe.ui.form.on('HL7 Mapping Table','field',function(frm,cdt,cdn){
 		'options',
 		[""].concat(components)
 		);
+		frm.fields_dict.filter_table.grid.update_docfield_property(
+			'component',
+			'options',
+			[""].concat(components)
+		);
 	}
     frm.refresh_field("mapping_table");
+	frm.refresh_field("filter_table");
 })
 
 frappe.ui.form.on('HL7 Mapping Table','component',function(frm,cdt,cdn){
@@ -99,8 +116,14 @@ frappe.ui.form.on('HL7 Mapping Table','component',function(frm,cdt,cdn){
 		'options',
 		[""].concat(msgList[seg][field][component])
 		);
+		frm.fields_dict.filter_table.grid.update_docfield_property(
+			'sub_component',
+			'options',
+			[""].concat(msgList[seg][field][component])
+		);
 	}
-    frm.refresh_field("mapping_table");
+	frm.refresh_field("mapping_table");
+    frm.refresh_field("filter_table");
 })
 
 frappe.ui.form.on('HL7 Mapping Table','target_doctype',function(frm,cdt,cdn){
@@ -120,9 +143,15 @@ frappe.ui.form.on('HL7 Mapping Table','target_doctype',function(frm,cdt,cdn){
 			   'options',
 			   [""].concat(options)
 			   );
+		frm.fields_dict.filter_table.grid.update_docfield_property(
+			'value',
+			'options',
+			[""].concat(options)
+		);
    });
    
    frm.refresh_field("mapping_table");
+   frm.refresh_field("filter_table");
 })
 
 function getEventDoctypes(frm,cdt,cdn)
@@ -144,6 +173,13 @@ function getEventDoctypes(frm,cdt,cdn)
             	return {
             		filters: {
             		    "name":['in',options]
+            		}
+            	}
+            }
+			frm.fields_dict['filter_table'].grid.get_field("target_doctype").get_query = function(doc, cdt, cdn) {
+            	return {
+            		filters: {
+            		    "name":['in',frm.doc.doctype_event]
             		}
             	}
             }

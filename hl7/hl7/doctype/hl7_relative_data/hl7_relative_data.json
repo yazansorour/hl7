@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:key",
+ "autoname": "format:{key}-{system_field}",
  "creation": "2024-09-09 14:26:45.936548",
  "default_view": "List",
  "doctype": "DocType",
@@ -9,28 +9,40 @@
  "engine": "InnoDB",
  "field_order": [
   "key",
-  "value"
+  "value",
+  "main_doc_type",
+  "system_field"
  ],
  "fields": [
   {
    "fieldname": "key",
    "fieldtype": "Data",
-   "label": "Key",
-   "unique": 1
+   "label": "Key"
   },
   {
    "fieldname": "value",
    "fieldtype": "Data",
    "label": "Value"
+  },
+  {
+   "fieldname": "system_field",
+   "fieldtype": "Select",
+   "label": "System Field"
+  },
+  {
+   "fieldname": "main_doc_type",
+   "fieldtype": "Link",
+   "label": "Main Doc Type",
+   "options": "DocType"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-15 12:07:16.480085",
+ "modified": "2024-09-26 17:26:28.909290",
  "modified_by": "Administrator",
  "module": "Hl7",
  "name": "HL7 Relative Data",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

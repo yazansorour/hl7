@@ -112,6 +112,10 @@ OBX|28|ED|S90_S90DDIFFScattergram||Mythic 5Vet PRO^Image^BMP^Base64^Qk32lgMAAAâ€
         """
         segments = {}
         for s in msg.splitlines():  # Ensure splitting by lines
+            if s == '':
+                continue
+            print("------------------------------------------------------------")
+            print(s)
             seg = parse_segment(s)
             if seg.name == "MSH" or seg.name == "EVN":
                 segments[seg.name] = s
@@ -142,7 +146,7 @@ OBX|28|ED|S90_S90DDIFFScattergram||Mythic 5Vet PRO^Image^BMP^Base64^Qk32lgMAAAâ€
         sendingApplication = mshSeg.sending_application[0].children[1].value.split("&")
         sendingFacility = mshSeg.sending_facility[0].children[1].value.split("&")
         receivingApplication = mshSeg.receiving_application[0].children[1].value.split("&")
-        receivingFacility = mshSeg.receiving_facility[0].children[0].value.split("&")
+        receivingFacility = mshSeg.receiving_facility[0].children[1].value.split("&")
         
         """ ---------------------- Message Type  ---------------------- """
         messageType = mshSeg.message_type.value.split("^")

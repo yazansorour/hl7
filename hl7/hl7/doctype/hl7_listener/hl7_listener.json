@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:title",
  "creation": "2024-09-18 14:59:52.506478",
  "default_view": "List",
  "doctype": "DocType",
@@ -8,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "ip_address",
   "column_break_zzxxm",
   "port"
  ],
@@ -15,24 +17,35 @@
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "label": "Title"
+   "label": "Title",
+   "unique": 1
   },
   {
    "fieldname": "port",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Port"
   },
   {
    "fieldname": "column_break_zzxxm",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ip_address",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "IP Address"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-18 15:04:39.771081",
+ "modified": "2024-09-24 17:04:02.624737",
  "modified_by": "Administrator",
  "module": "Hl7",
  "name": "Hl7 Listener",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

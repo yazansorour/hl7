@@ -22,6 +22,7 @@
   "record",
   "mapping_section_section",
   "hl7_template",
+  "filter_table",
   "mapping_table",
   "pid_listener"
  ],
@@ -111,11 +112,18 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "pid_listener"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Update\";",
+   "fieldname": "filter_table",
+   "fieldtype": "Table",
+   "label": "Filter Table",
+   "options": "HL7 Mapping Table"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-15 12:06:56.649369",
+ "modified": "2024-09-26 13:31:45.190182",
  "modified_by": "Administrator",
  "module": "Hl7",
  "name": "HL7 Settings",
