@@ -20,8 +20,6 @@ def parseHL7Message(msgName):
 
 @frappe.whitelist()
 def hl7Response(msg, port):
-    print('------------Wait-----------------------')
-    print(len(msg.splitlines()))
     msgSeg = HL7Utill.getDictSegments(msg)
     mshSeg = parse_segment(msgSeg['MSH'])
     pidSeg = parse_segment(msgSeg['PID-1'])
@@ -58,7 +56,7 @@ def hl7Response(msg, port):
                     component = fieldar.children[int(row.component) - 1]
                     subComp = component.children[int(row.sub_component) - 1]
                     result = subComp
-                    result = relative_result(result.value.value)
+                    result = relative_result(result.value.value , row.value)
                     filters[row.value] = result
                     
         doc_list = frappe.db.get_list(hl7_settings.doctype_event, filters=filters, fields=["name"])
@@ -86,6 +84,8 @@ def hl7Response(msg, port):
                 result = relative_result(result.value.value , row.value)
                 setattr(doc_event, row.value, result)
 
+    
+    
     # Create a new DocType
     if hl7_settings.action == "Create":
         doc_event.hospital_id = hl7_settings.hospital_id
@@ -94,6 +94,7 @@ def hl7Response(msg, port):
     # Update Patient
     elif hl7_settings.action == "Update":
         doc_event.save()
+    
 
 def relative_result(result , fieldName):
     isRelativeData = frappe.db.get_list("HL7 Relative Data", filters={'Key': result,'system_field':fieldName}, fields=['name', 'value'])

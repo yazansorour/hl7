@@ -66,11 +66,13 @@
   {
    "fieldname": "ip_address",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "IP Address"
   },
   {
    "fieldname": "port_number",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Port Number"
   },
   {
@@ -123,7 +125,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-26 13:31:45.190182",
+ "modified": "2024-09-30 13:44:54.355994",
  "modified_by": "Administrator",
  "module": "Hl7",
  "name": "HL7 Settings",
