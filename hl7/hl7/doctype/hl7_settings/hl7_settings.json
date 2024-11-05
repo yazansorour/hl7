@@ -64,16 +64,18 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval: doc.message_type === \"Sender\"",
    "fieldname": "ip_address",
    "fieldtype": "Data",
-   "hidden": 1,
-   "label": "IP Address"
+   "label": "IP Address",
+   "mandatory_depends_on": "eval: doc.message_type === \"Sender\""
   },
   {
+   "depends_on": "eval: doc.message_type === \"Sender\"",
    "fieldname": "port_number",
    "fieldtype": "Int",
-   "hidden": 1,
-   "label": "Port Number"
+   "label": "Port Number",
+   "mandatory_depends_on": "eval: doc.message_type === \"Sender\""
   },
   {
    "fieldname": "doctype_event",
@@ -125,7 +127,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-30 13:44:54.355994",
+ "modified": "2024-11-05 14:36:05.686128",
  "modified_by": "Administrator",
  "module": "Hl7",
  "name": "HL7 Settings",

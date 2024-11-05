@@ -114,8 +114,6 @@ OBX|28|ED|S90_S90DDIFFScattergram||Mythic 5Vet PRO^Image^BMP^Base64^Qk32lgMAAAâ€
         for s in msg.splitlines():  # Ensure splitting by lines
             if s == '':
                 continue
-            print("------------------------------------------------------------")
-            print(s)
             seg = parse_segment(s)
             if seg.name == "MSH" or seg.name == "EVN":
                 segments[seg.name] = s

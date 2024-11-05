@@ -2,10 +2,11 @@ import frappe
 from hl7apy.parser import parse_message, parse_segment, parse_segments, parse_fields, parse_component
 from datetime import datetime, timedelta
 from hl7apy.v2_4 import ST
-from dotmap import DotMap
-import pydicom
+# from dotmap import DotMap
+# import pydicom
 from hl7.hl7.utils.hl7_utill import HL7Utill
 import json
+import socket
 
 class JsonObject:
     def __init__(self, data):
@@ -89,16 +90,21 @@ def hl7Response(msg, port):
     # Create a new DocType
     if hl7_settings.action == "Create":
         doc_event.hospital_id = hl7_settings.hospital_id
-        doc_event.insert()
+        doc_event.insert(ignore_if_duplicate=True)
 
     # Update Patient
     elif hl7_settings.action == "Update":
         doc_event.save()
+
+    return json.dumps(metaData)
     
 
-def relative_result(result , fieldName):
-    isRelativeData = frappe.db.get_list("HL7 Relative Data", filters={'Key': result,'system_field':fieldName}, fields=['name', 'value'])
+def relative_result(result , fieldName , getKey=False , filterBy='key' ):
+    filters = {}
+    isRelativeData = frappe.db.get_list("HL7 Relative Data", filters={filterBy: result,'system_field':fieldName}, fields=['name', 'value' , 'key'])
     if len(isRelativeData) > 0:
+        if getKey == True:
+            return isRelativeData[0].key
         return isRelativeData[0].value
     return result
 
@@ -108,6 +114,7 @@ def sendHL7Message(docType, docName, action):
     data = json.loads(docName)
     record = JsonObject(data)
 
+    
     # Check HL7 Settings
     settings_list = frappe.db.get_list(
         'HL7 Settings',
@@ -124,15 +131,15 @@ def sendHL7Message(docType, docName, action):
         date_now = datetime.now()
 
         # HL7 Message Sequence
-        hl7_seq = frappe.new_doc("Message Sequence")
+        hl7_seq = frappe.new_doc("HL7 Message Sequence")
         hl7_seq.doc_id = hl7_settings.doctype_event
         hl7_seq.insert(ignore_permissions=True)
         last_seq = hl7_seq.name
-
+        
         # HL7 Logs object
         hl7_logs = frappe.new_doc("HL7 Logs")
         hl7_logs.hl7_settings = hl7_settings.name
-
+        
         try:
             clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             clientSocket.connect((hl7_settings.ip_address, hl7_settings.port_number))
@@ -143,6 +150,7 @@ def sendHL7Message(docType, docName, action):
             hl7_logs.error_message = 'Server connection failed!\nTry changing IP Address or Port Number.'
             hl7_logs.creation_date = date_now
             hl7_logs.insert(ignore_permissions=True)
+        
         
         msgSeg = HL7Utill.getDictSegments(hl7_settings.hl7_template)
 
@@ -155,7 +163,8 @@ def sendHL7Message(docType, docName, action):
                     component = fieldar.children[int(row.component) - 1]
                     subComp = component.children[int(row.sub_component) - 1]
                     result = subComp
-                    result.value = getattr(record, row.value)
+                    formattedResult = relative_result( getattr(record, row.value) , row.value , getKey=True , filterBy='value')
+                    result.value = formattedResult
                     msgSeg[row.segement] = seg.value
                 else:
                     seg = parse_segment(msgSeg[row.segement])
@@ -172,7 +181,8 @@ def sendHL7Message(docType, docName, action):
                     elif row.field.lower() == "msh_10":
                         result.value = last_seq
                     else:
-                        result.value = getattr(record, row.value)
+                        formattedResult = relative_result( getattr(record, row.value) , row.value , getKey=True , filterBy='value')
+                        result.value = formattedResult
                     msgSeg[row.segement] = seg.value
 
         m = ''
@@ -181,6 +191,7 @@ def sendHL7Message(docType, docName, action):
         
         message = parse_message(m)
         payload = b"\x0b" + message.value.encode() + b"\x1c\x0d"
+        print(payload)
         
         if not connection_failed:
             try:
@@ -202,3 +213,4 @@ def sendHL7Message(docType, docName, action):
                 hl7_logs.error_message = "Unexpected error has occurred!\nA required field could be missing."
                 hl7_logs.creation_date = date_now
                 hl7_logs.insert(ignore_permissions=True)
+        

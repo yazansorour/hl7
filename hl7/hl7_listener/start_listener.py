@@ -3,7 +3,7 @@ import sys
 from hl7apy.parser import parse_message
 import requests
 import json
-
+from datetime import datetime
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -36,8 +36,8 @@ while True:
                     if len(f) > 10:
                         ms += f + '\r'
                 # Send Message to the RIS System 
-                url = 'http://192.168.5.67/api/method/hl7.hl7.api.hl7Response'
-                headers = {'Authorization': 'Basic NTFhN2M0YjFlN2FjNWQ4OjFhZjdkNGQwZWI4Y2JjYQ=='}
+                url = 'http://127.0.0.1/api/method/hl7.hl7.api.hl7Response'
+                headers = {'Authorization': 'Basic ZjcwNTlmZDdiODNiMzc2OjFjY2U4MTc2NTVhZTgzNg=='}
                 payload = {
                     'msg':ms,
                     'port': int(sys.argv[2]),
@@ -47,9 +47,48 @@ while True:
                 # if its okay send ok ack 
                 # get the response error and send it 
                 hl7Message = parse_message(ms)
-                ack = b"\x0b MSH|^~\\&|HL7Listener|HL7Listener|SOMEAPP|SOMEAPP|20198151353||ACK^A08||T|2.3\rMSA|AA|" + bytes('{}|OK'.format(hl7Message.children[0].children[8].value), 'utf-8') + b" \x1c\x0d"
-                print('sending data back to the client')
-                connection.sendall(ack)  
+                rec_date = datetime.now().strftime("%Y%m%d%H%M")
+                # Extract sending and receiving information from hl7Message with default values if null
+                sending_application = hl7Message.children[0].children[2].value or "DefaultSendingApp"
+                sending_facility = hl7Message.children[0].children[3].value or "DefaultSendingFacility"
+                receiving_application = hl7Message.children[0].children[4].value or "DefaultReceivingApp"
+                receiving_facility = hl7Message.children[0].children[5].value or "DefaultReceivingFacility"
+
+                # Extract message type and trigger event with default values if null
+                #message_type = hl7Message.children[0].children[8].children[0].value or "ACK"  # e.g., "ACK"
+                #trigger_event = hl7Message.children[0].children[8].children[1].value or "A08"  # e.g., "A08"
+                if response.status_code == 200:
+                    # Parse the message string to a dictionary
+                    message_str = response.json().get('message', '{}')
+                    metaData = json.loads(message_str)  # Ensure this is a dict
+
+                    # Extract the fields with default values if they are missing
+                    application_sender = metaData.get('application_sender', {}).get('name', 'DefaultAppSender')
+                    facility_sender = metaData.get('facility_sender', {}).get('name', 'DefaultFacilitySender')
+                    application_receiver = metaData.get('application_receiver', {}).get('name', 'DefaultAppReceiver')
+                    facility_receiver = metaData.get('facility_receiver', {}).get('name', 'DefaultFacilityReceiver')
+                    message_type = metaData.get('message_type', {}).get('type', 'ACK')
+                    message_code = metaData.get('message_type', {}).get('code', 'A08')
+
+                    # Get the current date and time in the required format
+                    rec_date = datetime.now().strftime("%Y%m%d%H%M")
+
+                    # Construct the ACK message based on the received metadata
+                    ack = (
+                        b"\x0b MSH|^~\\&|"
+                        + bytes(application_sender, 'utf-8') + b"|"
+                        + bytes(facility_sender, 'utf-8') + b"|"
+                        + bytes(application_receiver, 'utf-8') + b"|"
+                        + bytes(facility_receiver, 'utf-8') + b"|"
+                        + bytes(rec_date, 'utf-8') + b"||"
+                        + bytes(f"{message_type}^{message_code}", 'utf-8') + b"||T|2.3\rMSA|AA|"
+                        + bytes('{}|OK'.format(hl7Message.children[0].children[8].value), 'utf-8')
+                        + b" \x1c\x0d"
+                    )
+                    print("Sending ACK data back to the client:", ack)
+                
+
+                    connection.sendall(ack)  
             else:
                 print('no data from', client_address)
                 break

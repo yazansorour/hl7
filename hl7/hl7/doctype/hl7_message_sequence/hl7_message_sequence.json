@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:MSG{###########}",
+ "creation": "2024-11-05 15:53:30.098104",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "doc_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "doc_id",
+   "fieldtype": "Data",
+   "label": "DocID"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-11-05 15:54:09.103446",
+ "modified_by": "Administrator",
+ "module": "Hl7",
+ "name": "HL7 Message Sequence",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
