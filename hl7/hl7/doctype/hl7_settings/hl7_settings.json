@@ -46,6 +46,8 @@
   {
    "fieldname": "hospital_id",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Hospital ID",
    "options": "Hospitals"
   },
@@ -125,7 +127,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-30 13:44:54.355994",
+ "modified": "2025-06-19 14:55:19.646372",
  "modified_by": "Administrator",
  "module": "Hl7",
  "name": "HL7 Settings",
